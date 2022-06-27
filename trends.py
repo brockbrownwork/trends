@@ -130,35 +130,3 @@ for trend in trends:
 print('difference: ', trends[second_keyword].difference_between(trends[first_keyword]))
 plot.legend()
 plot.show()
-
-'''
-trends = normalized_trends(keywords)
-trends['zales'].offset = 40
-trends['zales'].coefficient = 0.5
-for trend in trends:
-    trends[trend].plot()
-plot.show()
-'''
-'''
-pytrends.build_payload(keywords, cat = 0, timeframe = timeframe)
-
-data = pytrends.interest_over_time() 
-data = data.reset_index()
-
-
-print(list(data[keywords[0]]))
-
-for thing in data[keywords[0]]:
-    print(thing)
-
-import matplotlib.pyplot as plot
-
-for keyword in keywords:
-    y_data = list(data[keyword])[:-1]
-    plot.plot(range(len(y_data)), y_data, label = keyword)
-plot.legend()
-plot.show()
-# fig = px.line(data, x="date", y=keywords, title='Keyword Web Search Interest Over Time')
-# fig.show()
-'''
-
