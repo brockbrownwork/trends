@@ -1,17 +1,28 @@
 from pytrends.request import TrendReq
 import matplotlib.pyplot as plot
+import random
 
 # hl = hosting language
 # tz = timezone
 pytrends = TrendReq(hl='en-US', tz=360)
 
-keywords = ["family circus", "pearls before swine", "beetle bailey"]
+
 keywords = ["diamonds", "opal", "rubies", "gold", "silver"]
 keywords = ["diamonds", "opal", "rubies"]
-keywords = ["10K rings", "14K rings"]
-keywords = ["zales", "kay"]
 
-timeframe = '2004-01-01 2008-01-01'
+
+
+keywords = ["family circus", "beetle bailey"]
+
+keywords = ["family circus", "beetle bailey"]
+
+keywords = ["10K rings", "14K rings"]
+keywords = ["weather", "horoscopes"]
+keywords = ["garfield", "putin"]
+keywords = ["zales", "kay"]
+# keywords = ["weather", "chance of rain"]
+
+timeframe = '2004-01-01 2020-02-01'
 # timeframe = '2020-06-01 2020-06-07'
 
 class TrendLine(object):
@@ -31,11 +42,46 @@ class TrendLine(object):
     def __len__(self):
         return len(self.datapoints)
     def fit_line_to(self, other_trendline):
-        pass # TODO: the holy grail of this whole thing
+        def fitness(guess):
+            # the closer to zero, the more fit the guess is
+            self.coefficient, self.offset = guess
+            return self.difference_between(other_trendline)
+        def mutate(guess):
+            radiation = 0.5
+            coefficient, offset = guess
+            # TODO
+            if random.random() > 0.5:
+                coefficient += random.uniform(-radiation, radiation)
+            else:
+                offset += random.uniform(-radiation, radiation)
+            return (coefficient, offset)
+        # initialize random guesses for evolutionary algorithm
+        population = []
+        initial_population_size = 1000
+        population_size = 100
+        generations = 100
+        for i in range(initial_population_size):
+            # add random guesses to the population in the form of (coefficient, offset)
+            guess = (random.uniform(0, 10), random.uniform(0, 100))
+            population.append(guess)
+        print("initial population", population)
+        # population.sort(key = fitness)
+        # self.coefficient, self.offset = population[0]
+        for generation in range(generations):
+            new_members = []
+            for member in population:
+                new_member = mutate(member)
+                new_members.append(new_member)
+                # print(new_member)
+            population += new_members
+            population.sort(key = fitness)
+            population = population[:population_size]
+        self.coefficient, self.offset = population[0]
     def difference_between(self, other_trendline):
         total = 0
         for i, datapoint in enumerate(self):
-            total += pow((datapoint - other_trendline[i]), 2)
+            total += abs(datapoint - other_trendline[i])
+            # total += pow(datapoint - other_trendline[i], 2)
         average = total / len(self)
         return average # TODO
     def plot(self):
@@ -45,7 +91,10 @@ class TrendCollection(object): # TODO
     def __init__(self, trendlines):
         self.trendlines = trendlines
     def plot(self):
-        pass # TODO
+        for trendline in self.trendlines:
+            self.trendlines[trendline].plot()
+        plot.legend()
+        plot.show()
 
 def normalized_trends(keywords):
     # plots the normalized trend lines,
@@ -60,20 +109,26 @@ def normalized_trends(keywords):
         interest = list(data[keyword])[:-1] # trim ending zero (why is there a zero here?)
         y_data[keyword] = TrendLine(keyword, interest)
         print(interest)
-        y_data[keyword].plot()
-    print('difference: ', y_data['zales'].difference_between(y_data['kay']))
-    plot.legend()
-    plot.show()
+    trends = TrendCollection(y_data)
+    first_keyword, second_keyword = list(y_data.keys())[0], list(y_data.keys())[1]
+    print('difference: ', y_data[first_keyword].difference_between(y_data[second_keyword]))
+    trends.plot()
     return y_data
 
 trends = normalized_trends(keywords)
 first_keyword = list(trends.keys())[0]
 second_keyword = list(trends.keys())[1]
-trends[first_keyword].offset = 35
-trends[first_keyword].coefficient = 0.3
+# trends[first_keyword].offset = 35
+# trends[first_keyword].coefficient = 0.25
+
+trends[first_keyword].fit_line_to(trends[second_keyword])
+
+print("Total difference:", trends[first_keyword].difference_between(trends[second_keyword]))
+
 for trend in trends:
     trends[trend].plot()
 print('difference: ', trends[second_keyword].difference_between(trends[first_keyword]))
+plot.legend()
 plot.show()
 
 '''
